@@ -69,6 +69,7 @@ import com.android.modules.utils.SynchronousResultReceiver;
 
 import com.android.bluetooth.apm.ActiveDeviceManagerServiceIntf;
 import com.android.bluetooth.apm.ApmConstIntf;
+import com.android.bluetooth.apm.ApmConst;
 import com.android.bluetooth.apm.MediaAudioIntf;
 import com.android.bluetooth.apm.CallAudioIntf;
 import com.android.bluetooth.apm.VolumeManagerIntf;
@@ -1068,6 +1069,9 @@ public class LeAudioService extends ProfileService {
                 activeDevices.add(1, mActiveAudioInDevice);
         }*/
 
+        activeDevices.add(0, null);
+        activeDevices.add(1, null);
+
         ActiveDeviceManagerServiceIntf activeDeviceManager =
                                             ActiveDeviceManagerServiceIntf.get();
         mActiveAudioOutDevice =
@@ -1075,8 +1079,24 @@ public class LeAudioService extends ProfileService {
         mActiveAudioInDevice =
             activeDeviceManager.getActiveDevice(ApmConstIntf.AudioFeatures.CALL_AUDIO);
 
-        activeDevices.add(0, mActiveAudioOutDevice);
-        activeDevices.add(1, mActiveAudioInDevice);
+        int ActiveAudioMediaProfile =
+            activeDeviceManager.getActiveProfile(ApmConstIntf.AudioFeatures.MEDIA_AUDIO);
+        int ActiveAudioCallProfile =
+            activeDeviceManager.getActiveProfile(ApmConstIntf.AudioFeatures.CALL_AUDIO);
+
+        if (ActiveAudioMediaProfile == ApmConst.AudioProfiles.TMAP_MEDIA ||
+            ActiveAudioMediaProfile == ApmConst.AudioProfiles.BAP_MEDIA ||
+            ActiveAudioMediaProfile == ApmConst.AudioProfiles.BAP_GCP ||
+            ActiveAudioMediaProfile == ApmConst.AudioProfiles.BAP_GCP_VBC ||
+            ActiveAudioCallProfile == ApmConst.AudioProfiles.TMAP_CALL ||
+            ActiveAudioCallProfile == ApmConst.AudioProfiles.BAP_CALL)
+            activeDevices.add(0, mActiveAudioOutDevice);
+
+        if (ActiveAudioMediaProfile == ApmConst.AudioProfiles.BAP_RECORDING ||
+            ActiveAudioMediaProfile == ApmConst.AudioProfiles.BAP_GCP_VBC ||
+            ActiveAudioCallProfile == ApmConst.AudioProfiles.TMAP_CALL ||
+            ActiveAudioCallProfile == ApmConst.AudioProfiles.BAP_CALL)
+            activeDevices.add(1, mActiveAudioInDevice);
 
         Log.d(TAG, "getActiveDevices: LeAudio devices: Out[" + activeDevices.get(0) +
                                               "] - In[" + activeDevices.get(1) + "]");
